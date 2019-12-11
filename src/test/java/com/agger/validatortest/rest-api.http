@@ -1,0 +1,63 @@
+
+# 通过手机号查询用户
+GET http://localhost:8080/user/18300000000
+Accept: */*
+Cache-Control: no-cache
+
+###
+
+# 根据id查询用户
+GET http://localhost:8080/getUser?id=1231331
+Accept: */*
+Cache-Control: no-cache
+
+###
+
+# 新增用户
+POST http://localhost:8080/addUser
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{
+  "name": "阿萨66666666666666666666666666666",
+  "phone":"18388888888",
+  "age":120,
+  "email": "aaa@qq.com"
+}
+
+###
+
+# 修改用户
+POST http://localhost:8080/updateUser
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{
+  "id":12313,
+  "name": "阿萨1222",
+  "phone":"18388888888",
+  "age":12,
+  "email": "aaa@qq.com"
+}
+
+###
+
+# 修改用户2
+POST http://localhost:8080/updateUser2
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+{
+  "id":12313,
+  "name": "阿萨1222",
+  "phone":"18388888888",
+  "age":12,
+  "email": "aaa@qq.com"
+}
+
+###
+
+

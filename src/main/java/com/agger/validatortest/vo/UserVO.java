@@ -2,6 +2,7 @@ package com.agger.validatortest.vo;
 
 
 import com.agger.validatortest.system.annotation.PhoneValidator;
+import com.agger.validatortest.system.group.Update;
 import lombok.Data;
 import lombok.ToString;
 
@@ -17,6 +18,9 @@ import javax.validation.constraints.*;
 @ToString
 public class UserVO {
 
+    // 指明了分组校验为Update.class
+    @NotNull(message = "用户id不能为空",groups = Update.class)
+    @Max(value = 100,message = "id超出大小{value}")
     private Integer id;
 
     @NotNull(message = "用户姓名不能为空")
