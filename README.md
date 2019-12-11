@@ -2,10 +2,16 @@
 
 ### 一、前言
 在前端传递参数给后台接口的时候，后端会对传递的参数做一个基础校验，以前是手动写if一个个验证，效率极其低，而且还做了很多重复工作。本例没有太对基础和原理讲解，直接上代码，就是要简单粗暴，大家先用起来再说。项目源代码请访问github获取。
+
+[github](https://github.com/AggerChen/validator-test/tree/master)
+
+[博客地址](https://blog.csdn.net/github_36086968/article/details/103115128)
+
+
+
 ### 二、使用步骤
 Hibernate Validator在JSR 303校验框架中提供了很多注解类。此Hibernate与ORM框架无关，只是一个实现了JSR-303规范的验证框架。
 @Validated可以看作是@Valid的加强注解，@Valid能只能作用在方法、属性、构造、参数上，而@Validated可以作用在类上。
-@Validated注解还可以指定分组校验，这个本例暂时为讲，咱先只讲最简单的校验。
 
 #### 2.1 在VO类上加上验证规则
 在VO类属性上，我们可以加上我们需要的验证规则。
@@ -324,6 +330,121 @@ public class PhoneValidatotClass implements ConstraintValidator<PhoneValidator, 
 | @Range | 被注释的元素必须在合适的范围内 |
 
 
-### 三、github代码路径
+### 三、分组校验
+如果新增和修改两个接口需要验证的字段不同，比如id字段，新增可以不传递，但是修改必须传递id，我们又不可能写两个vo来满足不同的校验规则。所以就需要用到分组校验来实现。
 
+步骤：
+#### 3.1 创建分组接口
+例如定义接口 Insert、Update、Select来表示不同的操作；这些接口没有具体的方法，只是用来标识不同的分组。
+> Update.class
+```java
+package dgbc.common.data.vo;
 
+/**
+ * @program: Update
+ * @description: 分组标识
+ * @author: chenhx
+ * @create: 2019-12-10 14:30
+ **/
+public interface Update {
+}
+```
+#### 3.2 model校验指定分组
+
+修改UserVO属性上的校验分组
+> UserVO.java
+```java
+package com.agger.validatortest.vo;
+
+import com.agger.validatortest.system.annotation.PhoneValidator;
+import lombok.Data;
+import lombok.ToString;
+import javax.validation.constraints.*;
+
+/**
+ * @classname: User
+ * @description: User类
+ * @author chenhx
+ * @date 2019-11-17 21:07
+ */
+@Data
+@ToString
+public class UserVO {
+    
+    
+    // 指明了分组校验为Update.class
+    @NotNull(message = "用户id不能为空",groups = Update.class)
+    private Integer id;
+    
+    // 指明了分组校验为Insert.class和Update.class
+    @NotNull(message = "用户姓名不能为空",groups = {Insert.class,Update.class})
+    @Size(min=1,max=20,message = "用户姓名超出范围限制{min}-{max}")
+    private String name;
+
+    // 未指定分组 则都生效
+    @NotBlank(message = "手机号码不能为空")
+    @PhoneValidator         //自定义验证注解
+    private String phone;
+
+    @NotNull
+    @Max(value = 100,message = "超出年龄限制{value}")
+    @Min(value = 1,message = "最小年龄为{value}")
+    private Integer age;
+
+    @NotBlank(message = "邮箱不能为空")
+    @Email(message = "邮箱格式不正确")
+    private String email;
+}
+```
+#### 3.3 接口方法指明分组
+ 1. @Validated(Update.class)作用在方法上
+```java
+// 分组校验@Validated作用在方法上，vo上必须使用@Valid注解
+@PostMapping("/updateUser")
+@Validated(Update.class)
+public ResultVO updateUser(@RequestBody @Valid UserVO user){
+	ResultVO result = new ResultVO();
+	result.setCode(0);
+	result.setMsg("修改成功");
+	result.setData(user);
+	return result;
+}
+```
+2. @Validated(Update.class)作用在model上
+```java
+// 分组校验@Validated作用在方法上，vo上必须使用@Valid注解
+@PostMapping("/updateUser")
+public ResultVO updateUser(@RequestBody @Validated(Update.class) UserVO user){
+	ResultVO result = new ResultVO();
+	result.setCode(0);
+	result.setMsg("修改成功");
+	result.setData(user);
+	return result;
+}
+```
+注意：
+1. @Validated作用在方法上时，model前必须使用加上@Valid注解
+2. @Validated作用在model上时，不需要@Valid注解
+
+#### 3.4 分组校验顺序
+使用@GroupSequence注解来定义子分组校验的顺序。例：
+> Group1.java
+```java
+package com.agger.validatortest.system.group;
+import javax.validation.GroupSequence;
+
+/**
+ * @classname: Group1
+ * @description: 校验分组接口，此接口没有任何实现，只是用来标识分组信息
+ * @author chenhx
+ * @date 2019-12-11 11:14:24
+ */
+@GroupSequence({Insert.class,Update.class})
+public interface Group1 {
+    // 分组校验排序，先验证Insert分组，再验证Update分组
+}
+```
+
+### 四、github代码路径
+
+[github](https://github.com/AggerChen/validator-test/tree/master)
